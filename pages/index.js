@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import { motion } from 'framer-motion'
@@ -5,29 +7,36 @@ import { FaXTwitter } from 'react-icons/fa6'
 
 export default function ComingSoon() {
   const calculateTimeLeft = () => {
-    const targetDate = new Date('2025-11-02T00:00:00');
-    const now = new Date();
-    const difference = targetDate - now;
+    const targetDate = new Date('2025-11-02T00:00:00')
+    const now = new Date()
+    const difference = targetDate - now
 
-    if (difference <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    if (difference <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
 
     return {
       days: Math.floor(difference / (1000 * 60 * 60 * 24)),
       hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
       minutes: Math.floor((difference / (1000 * 60)) % 60),
       seconds: Math.floor((difference / 1000) % 60),
-    };
-  };
+    }
+  }
 
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+  const [timeLeft, setTimeLeft] = useState(null)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
-    }, 1000);
+    // Ensure this only runs client-side to avoid hydration mismatch
+    setMounted(true)
+  }, [])
 
-    return () => clearInterval(timer);
-  }, []);
+  useEffect(() => {
+    if (!mounted) return
+    setTimeLeft(calculateTimeLeft())
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft())
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [mounted])
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-black via-[#070707] to-[#0b0b0b] text-white flex flex-col items-center justify-center overflow-hidden">
@@ -64,35 +73,37 @@ export default function ComingSoon() {
         </h1>
 
         {/* Countdown Timer */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, delay: 0.4 }}
-          className="mt-6 flex gap-4 md:gap-8 text-center"
-        >
-          {[
-            { label: 'Days', value: timeLeft.days },
-            { label: 'Hours', value: timeLeft.hours },
-            { label: 'Minutes', value: timeLeft.minutes },
-            { label: 'Seconds', value: timeLeft.seconds },
-          ].map((unit, i) => (
-            <motion.div
-              key={i}
-              animate={{ y: [0, -4, 0] }}
-              transition={{ duration: 3, repeat: Infinity, delay: i * 0.3 }}
-              className="flex flex-col items-center"
-            >
-              <div className="w-20 h-20 md:w-24 md:h-24 rounded-xl bg-gradient-to-br from-yellow-500/10 to-amber-400/10 border border-yellow-400/30 flex items-center justify-center shadow-[0_0_20px_rgba(250,204,21,0.15)]">
-                <span className="text-3xl md:text-4xl font-bold text-yellow-400">
-                  {String(unit.value).padStart(2, '0')}
+        {mounted && timeLeft && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, delay: 0.4 }}
+            className="mt-6 flex gap-4 md:gap-8 text-center"
+          >
+            {[
+              { label: 'Days', value: timeLeft.days },
+              { label: 'Hours', value: timeLeft.hours },
+              { label: 'Minutes', value: timeLeft.minutes },
+              { label: 'Seconds', value: timeLeft.seconds },
+            ].map((unit, i) => (
+              <motion.div
+                key={i}
+                animate={{ y: [0, -4, 0] }}
+                transition={{ duration: 3, repeat: Infinity, delay: i * 0.3 }}
+                className="flex flex-col items-center"
+              >
+                <div className="w-20 h-20 md:w-24 md:h-24 rounded-xl bg-gradient-to-br from-yellow-500/10 to-amber-400/10 border border-yellow-400/30 flex items-center justify-center shadow-[0_0_20px_rgba(250,204,21,0.15)]">
+                  <span className="text-3xl md:text-4xl font-bold text-yellow-400">
+                    {String(unit.value).padStart(2, '0')}
+                  </span>
+                </div>
+                <span className="mt-2 text-sm text-gray-400 uppercase tracking-wider">
+                  {unit.label}
                 </span>
-              </div>
-              <span className="mt-2 text-sm text-gray-400 uppercase tracking-wider">
-                {unit.label}
-              </span>
-            </motion.div>
-          ))}
-        </motion.div>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
 
         <p className="mt-8 text-gray-300 max-w-2xl text-lg">
           The <span className="text-yellow-400 font-semibold">GRUMP Metaverse</span> is launching soon.
@@ -120,7 +131,7 @@ export default function ComingSoon() {
           </a>
         </div>
 
-        <p className="mt-6 text-sm text-gray-400">Want to be notified? Join our list Now.</p>
+        <p className="mt-6 text-sm text-gray-400">Want to be notified? Join our list now.</p>
       </motion.div>
 
       {/* Footer motion */}
